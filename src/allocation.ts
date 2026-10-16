@@ -5,14 +5,33 @@ const ctx = canvas.getContext("2d")!;
 const readout = document.querySelector<HTMLParagraphElement>(
   "#allocation-readout",
 )!;
+const totalCrew = 6;
 let assignedToSupplies = 2;
+
+type ShiftResults = {
+  production: number;
+  consumption: number;
+  balance: number;
+};
+
+function calculateShiftResults(assignedCrew: number): ShiftResults {
+  const production = calculateProduction(assignedCrew);
+  const consumption = totalCrew;
+  const balance = production - consumption;
+
+  return {
+    production,
+    consumption,
+    balance,
+  };
+}
 
 function calculateProduction(assignedCrew: number) {
   return assignedCrew * 3;
 }
 
 function drawCrewAssignment() {
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < totalCrew; i++) {
     ctx.fillStyle = i < assignedToSupplies ? "#27766b" : "#c9d2c9";
     ctx.fillRect(18 + i * 45, 16, 36, 36);
     ctx.fillStyle = i < assignedToSupplies ? "#ffffff" : "#233e43";
@@ -22,25 +41,23 @@ function drawCrewAssignment() {
 }
 
 function updateAllocation() {
-  const production = calculateProduction(assignedToSupplies);
-  const consumption = 6;
-  const balance = production - consumption;
+  const shiftResults = calculateShiftResults(assignedToSupplies);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCrewAssignment();
   ctx.fillStyle = "#233e43";
   ctx.font = "14px system-ui";
-  ctx.fillText(`Producers: ${assignedToSupplies} / 6`, 18, 76);
-  ctx.fillText(`Production: ${production}`, 18, 102);
+  ctx.fillText(`Producers: ${assignedToSupplies} / ${totalCrew}`, 18, 76);
+  ctx.fillText(`Production: ${shiftResults.production}`, 18, 102);
   ctx.fillStyle = "#27766b";
-  ctx.fillRect(18, 110, production * 14, 20);
+  ctx.fillRect(18, 110, shiftResults.production * 14, 20);
   ctx.fillStyle = "#233e43";
-  ctx.fillText(`Consumption: ${consumption}`, 18, 154);
+  ctx.fillText(`Consumption: ${shiftResults.consumption}`, 18, 154);
   ctx.fillStyle = "#a44d23";
-  ctx.fillRect(18, 162, consumption * 14, 20);
+  ctx.fillRect(18, 162, shiftResults.consumption * 14, 20);
   readout.textContent =
-    `Assigned: ${assignedToSupplies}/6 · Production: ${production} · Consumption: ${consumption} · Balance: ${
-      balance > 0 ? "+" : ""
-    }${balance}`;
+    `Assigned: ${assignedToSupplies}/${totalCrew} · Production: ${shiftResults.production} · Consumption: ${shiftResults.consumption} · Balance: ${
+      shiftResults.balance > 0 ? "+" : ""
+    }${shiftResults.balance}`;
 }
 
 document.querySelector<HTMLButtonElement>("#allocation-less")!.onclick = () => {
@@ -48,7 +65,7 @@ document.querySelector<HTMLButtonElement>("#allocation-less")!.onclick = () => {
   updateAllocation();
 };
 document.querySelector<HTMLButtonElement>("#allocation-more")!.onclick = () => {
-  assignedToSupplies = Math.min(6, assignedToSupplies + 1);
+  assignedToSupplies = Math.min(totalCrew, assignedToSupplies + 1);
   updateAllocation();
 };
 document.querySelector<HTMLButtonElement>("#allocation-reset")!.onclick =
