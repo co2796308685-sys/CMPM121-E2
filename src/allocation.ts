@@ -14,6 +14,12 @@ type ShiftResults = {
   balance: number;
 };
 
+type AllocationRow = {
+  label: string;
+  value: number;
+  color: string;
+};
+
 function calculateShiftResults(assignedCrew: number): ShiftResults {
   const production = calculateProduction(assignedCrew);
   const consumption = totalCrew;
@@ -42,18 +48,35 @@ function drawCrewAssignment() {
 
 function updateAllocation() {
   const shiftResults = calculateShiftResults(assignedToSupplies);
+
+  const rows: AllocationRow[] = [
+    {
+      label: "Production",
+      value: shiftResults.production,
+      color: "#27766b",
+    },
+    {
+      label: "Consumption",
+      value: shiftResults.consumption,
+      color: "#a44d23",
+    },
+  ];
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCrewAssignment();
   ctx.fillStyle = "#233e43";
   ctx.font = "14px system-ui";
   ctx.fillText(`Producers: ${assignedToSupplies} / ${totalCrew}`, 18, 76);
-  ctx.fillText(`Production: ${shiftResults.production}`, 18, 102);
-  ctx.fillStyle = "#27766b";
-  ctx.fillRect(18, 110, shiftResults.production * 14, 20);
-  ctx.fillStyle = "#233e43";
-  ctx.fillText(`Consumption: ${shiftResults.consumption}`, 18, 154);
-  ctx.fillStyle = "#a44d23";
-  ctx.fillRect(18, 162, shiftResults.consumption * 14, 20);
+  rows.forEach((row, index) => {
+    const labelY = 102 + index * 52;
+    const barY = 110 + index * 52;
+
+    ctx.fillStyle = "#233e43";
+    ctx.fillText(`${row.label}: ${row.value}`, 18, labelY);
+
+    ctx.fillStyle = row.color;
+    ctx.fillRect(18, barY, row.value * 14, 20);
+  });
   readout.textContent =
     `Assigned: ${assignedToSupplies}/${totalCrew} · Production: ${shiftResults.production} · Consumption: ${shiftResults.consumption} · Balance: ${
       shiftResults.balance > 0 ? "+" : ""
